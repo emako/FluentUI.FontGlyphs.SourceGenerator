@@ -58,7 +58,7 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
             output.AddSource("FontMapperAttribute.g.cs", SourceText.From(AttributeSource, Encoding.UTF8));
         });
 
-        var requests = context.SyntaxProvider
+        IncrementalValueProvider<ImmutableArray<GenerationRequest>> requests = context.SyntaxProvider
             .CreateSyntaxProvider(
                 static (node, _) => node is AttributeSyntax attribute && IsFontMapperAttribute(attribute),
                 static (syntaxContext, _) => CreateRequest(syntaxContext))
@@ -66,33 +66,33 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
             .Select(static (request, _) => request!.Value)
             .Collect();
 
-        var additionalFiles = context.AdditionalTextsProvider
+        IncrementalValueProvider<ImmutableArray<string>> additionalFiles = context.AdditionalTextsProvider
             .Select(static (text, _) => text.Path)
             .Collect();
 
-        var projectDirectory = context.AnalyzerConfigOptionsProvider
+        IncrementalValueProvider<string> projectDirectory = context.AnalyzerConfigOptionsProvider
             .Select(static (provider, _) =>
             {
-                provider.GlobalOptions.TryGetValue("build_property.projectdir", out var directory);
+                provider.GlobalOptions.TryGetValue("build_property.projectdir", out string? directory);
                 return directory ?? string.Empty;
             });
 
-        var generation = requests
+        IncrementalValueProvider<((ImmutableArray<GenerationRequest> Left, ImmutableArray<string> Right) Left, string Right)> generation = requests
             .Combine(additionalFiles)
             .Combine(projectDirectory);
 
         context.RegisterSourceOutput(generation, static (output, input) =>
         {
-            var requests = input.Left.Left;
-            var files = input.Left.Right;
-            var projectDir = input.Right;
+            ImmutableArray<GenerationRequest> requests = input.Left.Left;
+            ImmutableArray<string> files = input.Left.Right;
+            string projectDir = input.Right;
             Generate(output, requests, files, projectDir);
         });
     }
 
     private static bool IsFontMapperAttribute(AttributeSyntax attribute)
     {
-        var name = attribute.Name.ToString();
+        string name = attribute.Name.ToString();
         return name is "FontMapper"
             or "FontMapperAttribute"
             or "FluentUI.FontMapper.FontMapper"
@@ -101,17 +101,17 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
 
     private static GenerationRequest? CreateRequest(GeneratorSyntaxContext context)
     {
-        var attribute = (AttributeSyntax)context.Node;
-        var argumentList = attribute.ArgumentList;
+        AttributeSyntax attribute = (AttributeSyntax)context.Node;
+        AttributeArgumentListSyntax? argumentList = attribute.ArgumentList;
         if (argumentList == null)
         {
             return GenerationRequest.Invalid(attribute.GetLocation(), assembly: false);
         }
 
-        var arguments = argumentList.Arguments;
+        SeparatedSyntaxList<AttributeArgumentSyntax> arguments = argumentList.Arguments;
 
-        var list = attribute.Parent as AttributeListSyntax;
-        var assembly = list?.Target?.Identifier.IsKind(SyntaxKind.AssemblyKeyword) == true;
+        AttributeListSyntax? list = attribute.Parent as AttributeListSyntax;
+        bool assembly = list?.Target?.Identifier.IsKind(SyntaxKind.AssemblyKeyword) == true;
         if (assembly)
         {
             if (arguments.Count != 3)
@@ -149,7 +149,7 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
             return text;
         }
 
-        var value = context.SemanticModel.GetConstantValue(argument.Expression);
+        Optional<object?> value = context.SemanticModel.GetConstantValue(argument.Expression);
         return value.HasValue ? value.Value as string : null;
     }
 
@@ -159,8 +159,8 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
         ImmutableArray<string> additionalFiles,
         string projectDirectory)
     {
-        var seen = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var request in requests)
+        HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (GenerationRequest request in requests)
         {
             if (!string.IsNullOrEmpty(request.Error))
             {
@@ -180,14 +180,14 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var key = request.NamespaceName + "." + request.ClassName;
+            string key = request.NamespaceName + "." + request.ClassName;
             if (!seen.Add(key))
             {
                 output.ReportDiagnostic(Diagnostic.Create(Diagnostics.DuplicateClass, request.Location, key));
                 continue;
             }
 
-            var resolved = ResolvePath(request.FontPath, additionalFiles, projectDirectory);
+            string? resolved = ResolvePath(request.FontPath, additionalFiles, projectDirectory);
             if (resolved == null || !File.Exists(resolved))
             {
                 output.ReportDiagnostic(Diagnostic.Create(Diagnostics.FontNotFound, request.Location, request.FontPath));
@@ -211,8 +211,8 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
                 continue;
             }
 
-            var named = GlyphNamer.Name(glyphs);
-            var source = CodeEmitter.Emit(request.NamespaceName, request.Types, named, request.FontPath);
+            List<NamedGlyph> named = GlyphNamer.Name(glyphs);
+            string source = CodeEmitter.Emit(request.NamespaceName, request.Types, named, request.FontPath);
             output.AddSource(SanitizeFileName(key) + ".g.cs", SourceText.From(source, Encoding.UTF8));
         }
     }
@@ -224,17 +224,17 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
             return null;
         }
 
-        var normalizedRequest = requested.Replace('\\', '/').TrimStart('/');
+        string normalizedRequest = requested.Replace('\\', '/').TrimStart('/');
         string? match = null;
-        foreach (var candidate in additionalFiles)
+        foreach (string candidate in additionalFiles)
         {
             if (string.IsNullOrEmpty(candidate))
             {
                 continue;
             }
 
-            var normalized = candidate.Replace('\\', '/');
-            var matches = normalized.Equals(normalizedRequest, StringComparison.OrdinalIgnoreCase)
+            string normalized = candidate.Replace('\\', '/');
+            bool matches = normalized.Equals(normalizedRequest, StringComparison.OrdinalIgnoreCase)
                 || normalized.EndsWith("/" + normalizedRequest, StringComparison.OrdinalIgnoreCase);
             if (matches)
             {
@@ -254,7 +254,7 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
 
         if (!string.IsNullOrEmpty(projectDirectory))
         {
-            var combined = Path.Combine(projectDirectory, requested);
+            string combined = Path.Combine(projectDirectory, requested);
             if (File.Exists(combined))
             {
                 return combined;
@@ -281,7 +281,7 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
             return false;
         }
 
-        for (var i = 1; i < name.Length; i++)
+        for (int i = 1; i < name.Length; i++)
         {
             if (!(char.IsLetterOrDigit(name[i]) || name[i] == '_'))
             {
@@ -299,15 +299,15 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
             return true;
         }
 
-        var parts = name.Split('.');
+        string[] parts = name.Split('.');
         if (parts.Length == 0)
         {
             return false;
         }
 
-        foreach (var part in parts)
+        foreach (string part in parts)
         {
-            var identifier = part.StartsWith("@", StringComparison.Ordinal) ? part.Substring(1) : part;
+            string identifier = part.StartsWith("@", StringComparison.Ordinal) ? part.Substring(1) : part;
             if (!IsIdentifier(identifier))
             {
                 return false;
@@ -319,8 +319,8 @@ public sealed class FontMapperGenerator : IIncrementalGenerator
 
     private static string SanitizeFileName(string name)
     {
-        var builder = new StringBuilder(name.Length);
-        foreach (var character in name)
+        StringBuilder builder = new StringBuilder(name.Length);
+        foreach (char character in name)
         {
             builder.Append(char.IsLetterOrDigit(character) ? character : '_');
         }
@@ -377,7 +377,7 @@ internal readonly struct GenerationRequest
 
     public static GenerationRequest ForClass(string fontPath, ClassDeclarationSyntax declaration, Location location)
     {
-        var nested = new List<ClassDeclarationSyntax>();
+        List<ClassDeclarationSyntax> nested = new List<ClassDeclarationSyntax>();
         for (SyntaxNode? current = declaration; current != null; current = current.Parent)
         {
             if (current is ClassDeclarationSyntax type)
@@ -387,7 +387,7 @@ internal readonly struct GenerationRequest
         }
 
         nested.Reverse();
-        var types = nested.Select(static type => new TypePart(ClassModifiers(type), type.Identifier.ValueText)).ToImmutableArray();
+        ImmutableArray<TypePart> types = nested.Select(static type => new TypePart(ClassModifiers(type), type.Identifier.ValueText)).ToImmutableArray();
         return new GenerationRequest(
             fontPath,
             declaration.Identifier.ValueText,
@@ -400,7 +400,7 @@ internal readonly struct GenerationRequest
 
     public static GenerationRequest Invalid(Location location, bool assembly)
     {
-        var message = assembly
+        string message = assembly
             ? "Assembly usage is [assembly: FontMapper(\"font.ttf\", \"ClassName\", \"Namespace\")]"
             : "Class usage is [FontMapper(\"font.ttf\")] on a partial class";
         return new GenerationRequest(string.Empty, string.Empty, string.Empty, true, [], location, message);
@@ -408,8 +408,8 @@ internal readonly struct GenerationRequest
 
     private static string ReadNamespace(SyntaxNode node)
     {
-        var names = new List<string>();
-        for (var current = node.Parent; current != null; current = current.Parent)
+        List<string> names = new List<string>();
+        for (SyntaxNode? current = node.Parent; current != null; current = current.Parent)
         {
             if (current is BaseNamespaceDeclarationSyntax namespaceDeclaration)
             {
@@ -423,10 +423,10 @@ internal readonly struct GenerationRequest
 
     private static string ClassModifiers(ClassDeclarationSyntax declaration)
     {
-        var modifiers = declaration.Modifiers
+        IEnumerable<string> modifiers = declaration.Modifiers
             .Where(static modifier => !modifier.IsKind(SyntaxKind.PartialKeyword))
             .Select(static modifier => modifier.ValueText);
-        var text = string.Join(" ", modifiers);
+        string text = string.Join(" ", modifiers);
         return text.Length == 0 ? "partial" : text + " partial";
     }
 }

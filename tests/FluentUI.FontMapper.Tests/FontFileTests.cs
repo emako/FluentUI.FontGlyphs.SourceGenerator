@@ -5,7 +5,7 @@ public class FontFileTests
     [Fact]
     public void Reads_fontawesome_glyph_names()
     {
-        var glyphs = FontFile.Read(File.ReadAllBytes(TestFonts.FontAwesome));
+        List<GlyphMapping> glyphs = FontFile.Read(File.ReadAllBytes(TestFonts.FontAwesome));
 
         Assert.Equal("heart", Assert.Single(glyphs, glyph => glyph.Codepoint == 0xF004).Name);
         Assert.Equal("search", Assert.Single(glyphs, glyph => glyph.Codepoint == 0xF002).Name);
@@ -18,7 +18,7 @@ public class FontFileTests
     [Fact]
     public void Segoe_fluent_icons_has_no_glyph_names()
     {
-        var exception = Assert.Throws<InvalidDataException>(() => FontFile.Read(File.ReadAllBytes(TestFonts.SegoeFluentIcons)));
+        InvalidDataException exception = Assert.Throws<InvalidDataException>(() => FontFile.Read(File.ReadAllBytes(TestFonts.SegoeFluentIcons)));
 
         Assert.Contains("0x00030000", exception.Message, StringComparison.Ordinal);
     }

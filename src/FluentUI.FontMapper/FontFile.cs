@@ -25,24 +25,24 @@ internal static class FontFile
             throw new InvalidDataException("The font file is too small to be a TrueType font.");
         }
 
-        var reader = new Reader(data);
+        Reader reader = new Reader(data);
         reader.U32();
-        var tableCount = reader.U16();
+        ushort tableCount = reader.U16();
         reader.Skip(6);
 
         uint cmapOffset = 0;
         uint cmapLength = 0;
         uint postOffset = 0;
         uint postLength = 0;
-        var foundCmap = false;
-        var foundPost = false;
+        bool foundCmap = false;
+        bool foundPost = false;
 
-        for (var i = 0; i < tableCount; i++)
+        for (int i = 0; i < tableCount; i++)
         {
-            var tag = reader.ReadTag();
+            string tag = reader.ReadTag();
             reader.U32();
-            var offset = reader.U32();
-            var length = reader.U32();
+            uint offset = reader.U32();
+            uint length = reader.U32();
             if (tag == "cmap")
             {
                 cmapOffset = offset;
@@ -62,17 +62,17 @@ internal static class FontFile
             throw new InvalidDataException("The font is missing a cmap or post table.");
         }
 
-        var names = ReadPostNames(data, postOffset, postLength);
-        var mappings = ReadCmap(data, cmapOffset, cmapLength);
-        var result = new List<GlyphMapping>(mappings.Count);
-        foreach (var pair in mappings)
+        string[] names = ReadPostNames(data, postOffset, postLength);
+        SortedDictionary<uint, int> mappings = ReadCmap(data, cmapOffset, cmapLength);
+        List<GlyphMapping> result = new List<GlyphMapping>(mappings.Count);
+        foreach (KeyValuePair<uint, int> pair in mappings)
         {
             if (pair.Value <= 0 || pair.Value >= names.Length)
             {
                 continue;
             }
 
-            var name = names[pair.Value];
+            string name = names[pair.Value];
             if (string.IsNullOrEmpty(name) || name[0] == '.')
             {
                 continue;
@@ -87,19 +87,19 @@ internal static class FontFile
 
     private static string[] ReadPostNames(byte[] data, uint offset, uint length)
     {
-        var reader = new Reader(data, (int)offset);
-        var end = checked((int)offset + (int)length);
-        var format = reader.U32();
+        Reader reader = new Reader(data, (int)offset);
+        int end = checked((int)offset + (int)length);
+        uint format = reader.U32();
         if (format != 0x00020000 && format != 0x00025000)
         {
             throw new InvalidDataException("Only post table format 2 fonts expose glyph names. This font uses format 0x" + format.ToString("X8") + ".");
         }
 
         reader.Seek((int)offset + 32);
-        var glyphCount = reader.U16();
-        var indexes = new ushort[glyphCount];
-        var maxIndex = 257;
-        for (var i = 0; i < glyphCount; i++)
+        int glyphCount = reader.U16();
+        ushort[] indexes = new ushort[glyphCount];
+        int maxIndex = 257;
+        for (int i = 0; i < glyphCount; i++)
         {
             indexes[i] = reader.U16();
             if (indexes[i] > maxIndex)
@@ -108,30 +108,30 @@ internal static class FontFile
             }
         }
 
-        var customCount = maxIndex - 257;
-        var custom = new string[customCount];
-        for (var i = 0; i < customCount; i++)
+        int customCount = maxIndex - 257;
+        string[] custom = new string[customCount];
+        for (int i = 0; i < customCount; i++)
         {
             if (reader.Position >= end)
             {
                 throw new InvalidDataException("The post table ended before all glyph names were read.");
             }
 
-            var count = reader.U8();
+            byte count = reader.U8();
             custom[i] = reader.ReadAscii(count);
         }
 
-        var names = new string[glyphCount];
-        for (var i = 0; i < glyphCount; i++)
+        string[] names = new string[glyphCount];
+        for (int i = 0; i < glyphCount; i++)
         {
-            var index = indexes[i];
+            int index = indexes[i];
             if (index < MacintoshGlyphNames.Names.Length)
             {
                 names[i] = MacintoshGlyphNames.Names[index];
             }
             else
             {
-                var customIndex = index - 258;
+                int customIndex = index - 258;
                 names[i] = customIndex >= 0 && customIndex < custom.Length ? custom[customIndex] : string.Empty;
             }
         }
@@ -141,23 +141,23 @@ internal static class FontFile
 
     private static SortedDictionary<uint, int> ReadCmap(byte[] data, uint offset, uint length)
     {
-        var reader = new Reader(data, (int)offset);
-        var tableEnd = checked((int)offset + (int)length);
+        Reader reader = new Reader(data, (int)offset);
+        int tableEnd = checked((int)offset + (int)length);
         reader.U16();
-        var subtableCount = reader.U16();
-        var subtables = new List<CmapSubtable>();
-        for (var i = 0; i < subtableCount; i++)
+        int subtableCount = reader.U16();
+        List<CmapSubtable> subtables = new List<CmapSubtable>();
+        for (int i = 0; i < subtableCount; i++)
         {
-            var platform = reader.U16();
-            var encoding = reader.U16();
-            var subOffset = reader.U32();
-            var absolute = checked((int)offset + (int)subOffset);
+            int platform = reader.U16();
+            int encoding = reader.U16();
+            uint subOffset = reader.U32();
+            int absolute = checked((int)offset + (int)subOffset);
             if (absolute + 2 > data.Length)
             {
                 continue;
             }
 
-            var format = (data[absolute] << 8) | data[absolute + 1];
+            int format = (data[absolute] << 8) | data[absolute + 1];
             if (format == 4 || format == 12)
             {
                 subtables.Add(new CmapSubtable(platform, encoding, format, absolute));
@@ -170,7 +170,7 @@ internal static class FontFile
         }
 
         subtables.Sort(static (left, right) => Score(right).CompareTo(Score(left)));
-        var selected = subtables[0];
+        CmapSubtable selected = subtables[0];
         return selected.Format == 12
             ? ReadFormat12(data, selected.Offset, tableEnd)
             : ReadFormat4(data, selected.Offset, tableEnd);
@@ -178,7 +178,7 @@ internal static class FontFile
 
     private static int Score(CmapSubtable subtable)
     {
-        var score = subtable.Format == 12 ? 1000 : 0;
+        int score = subtable.Format == 12 ? 1000 : 0;
         if (subtable.PlatformId == 3 && (subtable.EncodingId == 10 || subtable.EncodingId == 1))
         {
             score += 100;
@@ -193,13 +193,13 @@ internal static class FontFile
 
     private static SortedDictionary<uint, int> ReadFormat12(byte[] data, int offset, int tableEnd)
     {
-        var reader = new Reader(data, offset);
+        Reader reader = new Reader(data, offset);
         reader.U16();
         reader.U16();
         reader.U32();
         reader.U32();
-        var groupCount = reader.U32();
-        var map = new SortedDictionary<uint, int>();
+        uint groupCount = reader.U32();
+        SortedDictionary<uint, int> map = new SortedDictionary<uint, int>();
         for (uint i = 0; i < groupCount; i++)
         {
             if (reader.Position + 12 > data.Length)
@@ -207,15 +207,15 @@ internal static class FontFile
                 throw new InvalidDataException("The cmap format 12 subtable is truncated.");
             }
 
-            var start = reader.U32();
-            var end = reader.U32();
-            var startGlyph = reader.U32();
+            uint start = reader.U32();
+            uint end = reader.U32();
+            uint startGlyph = reader.U32();
             if (end < start)
             {
                 continue;
             }
 
-            var count = end - start;
+            uint count = end - start;
             for (uint delta = 0; delta <= count; delta++)
             {
                 map[start + delta] = checked((int)(startGlyph + delta));
@@ -227,61 +227,61 @@ internal static class FontFile
 
     private static SortedDictionary<uint, int> ReadFormat4(byte[] data, int offset, int tableEnd)
     {
-        var reader = new Reader(data, offset);
+        Reader reader = new Reader(data, offset);
         reader.U16();
-        var subtableLength = reader.U16();
+        int subtableLength = reader.U16();
         reader.U16();
-        var segCount = reader.U16() / 2;
+        int segCount = reader.U16() / 2;
         reader.Skip(6);
-        var endCode = new int[segCount];
-        for (var i = 0; i < segCount; i++)
+        int[] endCode = new int[segCount];
+        for (int i = 0; i < segCount; i++)
         {
             endCode[i] = reader.U16();
         }
 
         reader.U16();
-        var startCode = new int[segCount];
-        for (var i = 0; i < segCount; i++)
+        int[] startCode = new int[segCount];
+        for (int i = 0; i < segCount; i++)
         {
             startCode[i] = reader.U16();
         }
 
-        var idDelta = new int[segCount];
-        for (var i = 0; i < segCount; i++)
+        int[] idDelta = new int[segCount];
+        for (int i = 0; i < segCount; i++)
         {
             idDelta[i] = reader.I16();
         }
 
-        var idRangeOffsetPosition = reader.Position;
-        var idRangeOffset = new int[segCount];
-        for (var i = 0; i < segCount; i++)
+        int idRangeOffsetPosition = reader.Position;
+        int[] idRangeOffset = new int[segCount];
+        for (int i = 0; i < segCount; i++)
         {
             idRangeOffset[i] = reader.U16();
         }
 
-        var limit = Math.Min(data.Length, offset + subtableLength);
+        int limit = Math.Min(data.Length, offset + subtableLength);
         if (limit > tableEnd)
         {
             limit = tableEnd;
         }
 
-        var wordCount = Math.Max(0, (limit - idRangeOffsetPosition) / 2);
-        var words = new int[wordCount];
+        int wordCount = Math.Max(0, (limit - idRangeOffsetPosition) / 2);
+        int[] words = new int[wordCount];
         reader.Seek(idRangeOffsetPosition);
-        for (var i = 0; i < wordCount; i++)
+        for (int i = 0; i < wordCount; i++)
         {
             words[i] = reader.U16();
         }
 
-        var map = new SortedDictionary<uint, int>();
-        for (var segment = 0; segment < segCount; segment++)
+        SortedDictionary<uint, int> map = new SortedDictionary<uint, int>();
+        for (int segment = 0; segment < segCount; segment++)
         {
             if (startCode[segment] == 0xFFFF)
             {
                 continue;
             }
 
-            for (var code = startCode[segment]; code <= endCode[segment]; code++)
+            for (int code = startCode[segment]; code <= endCode[segment]; code++)
             {
                 int glyphId;
                 if (idRangeOffset[segment] == 0)
@@ -290,7 +290,7 @@ internal static class FontFile
                 }
                 else
                 {
-                    var wordIndex = segment + (idRangeOffset[segment] / 2) + (code - startCode[segment]);
+                    int wordIndex = segment + (idRangeOffset[segment] / 2) + (code - startCode[segment]);
                     if (wordIndex < 0 || wordIndex >= words.Length)
                     {
                         continue;
@@ -362,7 +362,7 @@ internal static class FontFile
 
         public ushort U16()
         {
-            var value = (ushort)((_data[_position] << 8) | _data[_position + 1]);
+            ushort value = (ushort)((_data[_position] << 8) | _data[_position + 1]);
             _position += 2;
             return value;
         }
@@ -374,7 +374,7 @@ internal static class FontFile
 
         public uint U32()
         {
-            var value = ((uint)_data[_position] << 24)
+            uint value = ((uint)_data[_position] << 24)
                 | ((uint)_data[_position + 1] << 16)
                 | ((uint)_data[_position + 2] << 8)
                 | _data[_position + 3];
@@ -384,14 +384,14 @@ internal static class FontFile
 
         public string ReadTag()
         {
-            var tag = ReadAscii(4);
+            string tag = ReadAscii(4);
             return tag;
         }
 
         public string ReadAscii(int count)
         {
-            var chars = new char[count];
-            for (var i = 0; i < count; i++)
+            char[] chars = new char[count];
+            for (int i = 0; i < count; i++)
             {
                 chars[i] = (char)_data[_position++];
             }

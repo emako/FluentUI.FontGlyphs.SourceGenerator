@@ -17,7 +17,7 @@ public class GlyphNamerTests
     [Fact]
     public void Disambiguates_duplicate_identifiers()
     {
-        var named = GlyphNamer.Name(
+        List<NamedGlyph> named = GlyphNamer.Name(
         [
             new GlyphMapping(0xE010, "ic_fluent_add_20_regular"),
             new GlyphMapping(0xE011, "ic_fluent_add_20_regular")

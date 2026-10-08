@@ -32,15 +32,15 @@ internal static class GlyphNamer
 
     public static List<NamedGlyph> Name(IReadOnlyList<GlyphMapping> glyphs)
     {
-        var used = new HashSet<string>(StringComparer.Ordinal);
-        var result = new List<NamedGlyph>(glyphs.Count);
-        foreach (var glyph in glyphs)
+        HashSet<string> used = new HashSet<string>(StringComparer.Ordinal);
+        List<NamedGlyph> result = new List<NamedGlyph>(glyphs.Count);
+        foreach (GlyphMapping glyph in glyphs)
         {
-            var identifier = ToIdentifier(glyph.Name);
+            string identifier = ToIdentifier(glyph.Name);
             if (!used.Add(identifier))
             {
                 identifier = identifier + "_" + glyph.Codepoint.ToString("X", CultureInfo.InvariantCulture);
-                var suffix = 2;
+                int suffix = 2;
                 while (!used.Add(identifier))
                 {
                     identifier = ToIdentifier(glyph.Name) + "_" + suffix.ToString(CultureInfo.InvariantCulture);
@@ -56,13 +56,13 @@ internal static class GlyphNamer
 
     public static string ToIdentifier(string glyphName)
     {
-        var raw = glyphName ?? string.Empty;
+        string raw = glyphName ?? string.Empty;
         if (raw.StartsWith("ic_fluent_", StringComparison.OrdinalIgnoreCase))
         {
             raw = raw.Substring("ic_fluent_".Length);
         }
 
-        foreach (var suffix in Suffixes)
+        foreach (string suffix in Suffixes)
         {
             if (raw.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
             {
@@ -71,12 +71,12 @@ internal static class GlyphNamer
             }
         }
 
-        var parts = raw.Split(['_', '-', ' ', '.'], StringSplitOptions.RemoveEmptyEntries);
-        var builder = new StringBuilder();
-        foreach (var part in parts)
+        string[] parts = raw.Split(['_', '-', ' ', '.'], StringSplitOptions.RemoveEmptyEntries);
+        StringBuilder builder = new StringBuilder();
+        foreach (string part in parts)
         {
-            var cleaned = new StringBuilder();
-            foreach (var character in part)
+            StringBuilder cleaned = new StringBuilder();
+            foreach (char character in part)
             {
                 if (char.IsLetterOrDigit(character))
                 {
@@ -93,7 +93,7 @@ internal static class GlyphNamer
             builder.Append(cleaned);
         }
 
-        var name = builder.Length == 0 ? "Glyph" : builder.ToString();
+        string name = builder.Length == 0 ? "Glyph" : builder.ToString();
         if (char.IsDigit(name[0]))
         {
             name = "_" + name;

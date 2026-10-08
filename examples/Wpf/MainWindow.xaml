@@ -1,0 +1,19 @@
+<Window x:Class="FluentUI.FontMapper.Examples.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:icons="clr-namespace:FluentUI.FontMapper.Examples.Wpf"
+        Title="FluentUI.FontMapper WPF"
+        Height="280"
+        Width="480"
+        WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="32">
+        <TextBlock FontSize="20" FontWeight="SemiBold" Text="图标字体常量" />
+        <TextBlock Margin="0,16,0,0"
+                   FontFamily="pack://application:,,,/Assets/SampleIcons.ttf#Sample Icons"
+                   FontSize="72"
+                   Text="{x:Static icons:Icons.Add20}" />
+        <TextBlock Margin="0,8,0,0"
+                   Foreground="#666"
+                   Text="Icons.Add20 来自字形名 ic_fluent_add_20_regular。" />
+    </StackPanel>
+</Window>

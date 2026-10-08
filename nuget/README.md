@@ -40,3 +40,14 @@ using FluentUI.FontMapper;
 ```
 
 Glyph names such as `ic_fluent_add_20_regular` become constants like `Add20`.
+
+## WPF
+
+See `examples/Wpf`. Reference the generator as an analyzer, include the font as both `AdditionalFiles` and a WPF `Resource`, then bind a `TextBlock` to the generated constant:
+
+```xml
+<TextBlock FontFamily="pack://application:,,,/Assets/SampleIcons.ttf#Sample Icons"
+           Text="{x:Static icons:Icons.Add20}" />
+```
+
+`#` is followed by the font's family name.

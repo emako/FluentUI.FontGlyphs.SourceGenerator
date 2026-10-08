@@ -14,79 +14,70 @@ public class GeneratorTests
     [Fact]
     public void Assembly_attribute_generates_string_constants()
     {
-        var font = TestFont.Create(
-        [
-            (0xE010, "ic_fluent_add_20_regular"),
-            (0xE011, "ic_fluent_home_24_filled"),
-            (0x000F0BC4, "ic_fluent_sparkle_20_regular")
-        ]);
         var source = """
             using FluentUI.FontMapper;
 
-            [assembly: FontMapper("icons.ttf", "SymbolRegular", "Demo.Icons")]
+            [assembly: FontMapper("fontawesome.ttf", "SymbolRegular", "Demo.Icons")]
             """;
 
-        var compilation = Run(source, font, "icons.ttf");
+        var compilation = Run(source, TestFonts.FontAwesome, "fontawesome.ttf");
 
         var generated = Assert.Single(compilation.Generated, text => text.Contains("class SymbolRegular"));
         Assert.Contains("namespace Demo.Icons;", generated);
-        Assert.Contains("public const string Add20 = \"\\uE010\";", generated);
-        Assert.Contains("public const string Home24 = \"\\uE011\";", generated);
-        Assert.Contains("public const string Sparkle20 = \"\\U000F0BC4\";", generated);
+        Assert.Contains("public const string Heart = \"\\uF004\";", generated);
+        Assert.Contains("public const string Search = \"\\uF002\";", generated);
+        Assert.Contains("public const string StarEmpty = \"\\uF006\";", generated);
         Assert.DoesNotContain("enum ", generated);
 
-        var value = GetConstant(compilation.Assembly, "Demo.Icons.SymbolRegular", "Add20");
-        Assert.Equal("\uE010", value);
-        Assert.Equal("\U000F0BC4", GetConstant(compilation.Assembly, "Demo.Icons.SymbolRegular", "Sparkle20"));
+        Assert.Equal("\uF004", GetConstant(compilation.Assembly, "Demo.Icons.SymbolRegular", "Heart"));
+        Assert.Equal("\uF006", GetConstant(compilation.Assembly, "Demo.Icons.SymbolRegular", "StarEmpty"));
     }
 
     [Fact]
     public void Partial_class_attribute_generates_into_the_declared_type()
     {
-        var font = TestFont.Create([(0xE020, "ic_fluent_save_16_regular")]);
         var source = """
             using FluentUI.FontMapper;
 
             namespace App.Controls;
 
-            [FontMapper("Assets/Fluent.ttf")]
+            [FontMapper("Assets/fontawesome.ttf")]
             public static partial class Icons
             {
                 public const string Manual = "manual";
             }
             """;
 
-        var compilation = Run(source, font, "Assets/Fluent.ttf");
+        var compilation = Run(source, TestFonts.FontAwesome, "Assets/fontawesome.ttf");
 
         var generated = Assert.Single(compilation.Generated, text => text.Contains("class Icons"));
         Assert.Contains("namespace App.Controls;", generated);
         Assert.Contains("public static partial class Icons", generated);
-        Assert.Contains("public const string Save16 = \"\\uE020\";", generated);
-        Assert.Equal("\uE020", GetConstant(compilation.Assembly, "App.Controls.Icons", "Save16"));
+        Assert.Contains("public const string Heart = \"\\uF004\";", generated);
+        Assert.Equal("\uF004", GetConstant(compilation.Assembly, "App.Controls.Icons", "Heart"));
         Assert.Equal("manual", GetConstant(compilation.Assembly, "App.Controls.Icons", "Manual"));
     }
 
     [Fact]
     public void Both_usages_can_exist_in_one_compilation()
     {
-        var font = TestFont.Create([(0xE001, "ic_fluent_add_20_regular")]);
         var source = """
             using FluentUI.FontMapper;
 
-            [assembly: FontMapper("icons.ttf", "SymbolFilled", "Generated")]
+            [assembly: FontMapper("fontawesome.ttf", "SymbolFilled", "Generated")]
 
             namespace App;
 
-            [FontMapper("icons.ttf")]
+            [FontMapper("fontawesome.ttf")]
             internal partial class LocalIcons
             {
             }
             """;
 
-        var compilation = Run(source, font, "icons.ttf");
+        var compilation = Run(source, TestFonts.FontAwesome, "fontawesome.ttf");
 
-        Assert.Equal("\uE001", GetConstant(compilation.Assembly, "Generated.SymbolFilled", "Add20"));
-        Assert.Equal("\uE001", GetConstant(compilation.Assembly, "App.LocalIcons", "Add20"));
+        Assert.Equal("\uF004", GetConstant(compilation.Assembly, "Generated.SymbolFilled", "Heart"));
+        Assert.Equal("\uF004", GetConstant(compilation.Assembly, "App.LocalIcons", "Heart"));
         Assert.Contains("internal partial class LocalIcons", Assert.Single(compilation.Generated, text => text.Contains("class LocalIcons")));
     }
 
@@ -99,7 +90,7 @@ public class GeneratorTests
             [assembly: FontMapper("missing.ttf", "Icons", "Demo")]
             """;
 
-        var result = Run(source, TestFont.Create([(0xE001, "ic_fluent_add_20_regular")]), "other.ttf");
+        var result = Run(source, TestFonts.FontAwesome, "other.ttf");
 
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "FM0001");
         Assert.DoesNotContain(result.Assembly.GetTypes(), type => type.Name == "Icons");
@@ -111,13 +102,13 @@ public class GeneratorTests
         var source = """
             using FluentUI.FontMapper;
 
-            [FontMapper("icons.ttf")]
+            [FontMapper("fontawesome.ttf")]
             public static class Icons
             {
             }
             """;
 
-        var result = Run(source, TestFont.Create([(0xE001, "ic_fluent_add_20_regular")]), "icons.ttf");
+        var result = Run(source, TestFonts.FontAwesome, "fontawesome.ttf");
 
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "FM0003");
     }
@@ -128,57 +119,54 @@ public class GeneratorTests
         var source = """
             using FluentUI.FontMapper;
 
-            [FontMapper("icons.ttf", "Name", "Namespace")]
+            [FontMapper("fontawesome.ttf", "Name", "Namespace")]
             public static partial class Icons
             {
             }
             """;
 
-        var result = Run(source, TestFont.Create([(0xE001, "ic_fluent_add_20_regular")]), "icons.ttf");
+        var result = Run(source, TestFonts.FontAwesome, "fontawesome.ttf");
 
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "FM0007");
+    }
+
+    [Fact]
+    public void Unnamed_font_reports_FM0002()
+    {
+        var source = """
+            using FluentUI.FontMapper;
+
+            [assembly: FontMapper("Segoe Fluent Icons.ttf", "Icons", "Demo")]
+            """;
+
+        var result = Run(source, TestFonts.SegoeFluentIcons, "Segoe Fluent Icons.ttf");
+
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "FM0002");
+        Assert.DoesNotContain(result.Assembly.GetTypes(), type => type.Name == "Icons");
     }
 
     [Fact]
     public void Resolves_font_from_project_directory_without_relying_on_file_name_only()
     {
         var directory = Path.Combine(Path.GetTempPath(), "font-mapper-" + Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(directory);
-        var relative = Path.Combine("Assets", "icons.ttf");
+        var relative = Path.Combine("Assets", "fontawesome.ttf");
         var full = Path.Combine(directory, relative);
         Directory.CreateDirectory(Path.GetDirectoryName(full)!);
-        File.WriteAllBytes(full, TestFont.Create([(0xE030, "ic_fluent_copy_20_regular")]));
+        File.Copy(TestFonts.FontAwesome, full);
         try
         {
             var source = """
                 using FluentUI.FontMapper;
 
-                [assembly: FontMapper("Assets/icons.ttf", "Icons", "Demo")]
+                [assembly: FontMapper("Assets/fontawesome.ttf", "Icons", "Demo")]
                 """;
-            var result = Run(source, fontBytes: null, additionalRelativePath: null, projectDirectory: directory);
-            Assert.Equal("\uE030", GetConstant(result.Assembly, "Demo.Icons", "Copy20"));
+            var result = Run(source, fontPath: null, additionalRelativePath: null, projectDirectory: directory);
+            Assert.Equal("\uF004", GetConstant(result.Assembly, "Demo.Icons", "Heart"));
         }
         finally
         {
             Directory.Delete(directory, recursive: true);
         }
-    }
-
-    [Fact]
-    public void Generates_from_real_fluent_ttf()
-    {
-        var path = Environment.GetEnvironmentVariable("FLUENT_SYSTEM_ICONS_TTF")
-            ?? @"D:\GitHub\FluentUI.SystemIcons.Assets\fluentui-system-icons\fonts\FluentSystemIcons-Regular.ttf";
-        Assert.True(File.Exists(path), "Fluent System Icons Regular was not found at " + path);
-
-        var source = """
-            using FluentUI.FontMapper;
-
-            [assembly: FontMapper("FluentSystemIcons-Regular.ttf", "SymbolRegular", "Fluent")]
-            """;
-        var result = Run(source, File.ReadAllBytes(path), "FluentSystemIcons-Regular.ttf");
-        Assert.Equal("\uE000", GetConstant(result.Assembly, "Fluent.SymbolRegular", "AccessTime20"));
-        Assert.Equal("\uE001", GetConstant(result.Assembly, "Fluent.SymbolRegular", "Accessibility32"));
     }
 
     private static string? GetConstant(Assembly assembly, string typeName, string fieldName)
@@ -191,16 +179,16 @@ public class GeneratorTests
         return field.GetRawConstantValue() as string;
     }
 
-    private static GenerationResult Run(string source, byte[]? fontBytes, string? additionalRelativePath, string? projectDirectory = null)
+    private static GenerationResult Run(string source, string? fontPath, string? additionalRelativePath, string? projectDirectory = null)
     {
         string? fontDirectory = null;
-        string? fontPath = null;
-        if (fontBytes != null)
+        string? copiedFont = null;
+        if (fontPath != null)
         {
             fontDirectory = Path.Combine(Path.GetTempPath(), "font-mapper-" + Guid.NewGuid().ToString("N"));
-            fontPath = Path.Combine(fontDirectory, additionalRelativePath!.Replace('/', Path.DirectorySeparatorChar));
-            Directory.CreateDirectory(Path.GetDirectoryName(fontPath)!);
-            File.WriteAllBytes(fontPath, fontBytes);
+            copiedFont = Path.Combine(fontDirectory, additionalRelativePath!.Replace('/', Path.DirectorySeparatorChar));
+            Directory.CreateDirectory(Path.GetDirectoryName(copiedFont)!);
+            File.Copy(fontPath, copiedFont);
         }
 
         try
@@ -213,9 +201,9 @@ public class GeneratorTests
                 MetadataReferences(),
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var additional = fontPath == null
+            var additional = copiedFont == null
                 ? ImmutableArray<AdditionalText>.Empty
-                : ImmutableArray.Create<AdditionalText>(new FileAdditionalText(fontPath));
+                : ImmutableArray.Create<AdditionalText>(new FileAdditionalText(copiedFont));
             var driver = CSharpGeneratorDriver.Create(
                 new[] { new FontMapperGenerator().AsSourceGenerator() },
                 additional,

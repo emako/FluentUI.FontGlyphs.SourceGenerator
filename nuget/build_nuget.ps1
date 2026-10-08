@@ -9,7 +9,5 @@ Write-Host @"
 ╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   
 "@
 
-dotnet build ..\src\FluentUI.FontMapper\FluentUI.FontMapper.csproj -c Release
+dotnet pack ..\src\FluentUI.FontMapper\FluentUI.FontMapper.csproj -c Release -o .
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-nuget pack Package.nuspec -OutputDirectory .

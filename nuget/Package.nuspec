@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>FluentUI.FontMapper</id>
+    <version>1.0.0</version>
+    <title>FluentUI Font Mapper</title>
+    <authors>emako</authors>
+    <owners>emako</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/emako/FluentUI.FontMapper</projectUrl>
+    <repository type="git" url="https://github.com/emako/FluentUI.FontMapper.git" />
+    <description>Roslyn source generator that maps TrueType font glyphs to string constants.</description>
+    <tags>fluentui font icons source-generator roslyn</tags>
+    <readme>README.md</readme>
+    <icon>logo.png</icon>
+    <developmentDependency>true</developmentDependency>
+  </metadata>
+  <files>
+    <file src="logo.png" target="" />
+    <file src="README.md" target="" />
+    <file src="..\src\FluentUI.FontMapper\bin\Release\netstandard2.0\FluentUI.FontMapper.dll" target="analyzers\dotnet\cs" />
+  </files>
+</package>

@@ -5,4 +5,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/FluentUI.FontMapper.Tests/FluentUI.FontMapper.Tests.csproj" />
   </Folder>
+  <Folder Name="/examples/">
+    <Project Path="examples/Wpf/FluentUI.FontMapper.Examples.Wpf.csproj" />
+  </Folder>
 </Solution>

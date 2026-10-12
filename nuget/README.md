@@ -43,7 +43,7 @@ Glyph names such as `ic_fluent_add_20_regular` become constants like `Add20`.
 
 ## WPF
 
-See `examples/Wpf`. Reference the generator as an analyzer, include the font as both `AdditionalFiles` and a WPF `Resource`, then bind a `TextBlock` to the generated constant:
+See `examples/FluentUI.FontMapper.Examples.WPF`. Reference the generator as an analyzer, include the font as both `AdditionalFiles` and a WPF `Resource`, then bind a `TextBlock` to the generated constant:
 
 ```xml
 <TextBlock FontFamily="pack://application:,,,/Assets/SampleIcons.ttf#Sample Icons"

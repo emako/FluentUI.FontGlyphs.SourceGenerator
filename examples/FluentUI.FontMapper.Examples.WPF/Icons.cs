@@ -1,4 +1,4 @@
 namespace FluentUI.FontMapper.Examples.Wpf;
 
-[FontMapper("Assets/SampleIcons.ttf")]
+[FontMapper("Assets/fontawesome.ttf")]
 public static partial class Icons;

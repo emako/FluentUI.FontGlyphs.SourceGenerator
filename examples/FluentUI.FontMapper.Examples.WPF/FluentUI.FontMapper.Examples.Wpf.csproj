@@ -10,8 +10,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\FluentUI.FontMapper\FluentUI.FontMapper.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <AdditionalFiles Include="Assets\SampleIcons.ttf" />
-    <Resource Include="Assets\SampleIcons.ttf" />
+    <AdditionalFiles Include="Assets\fontawesome.ttf" />
+    <Resource Include="Assets\fontawesome.ttf" />
   </ItemGroup>
 
 </Project>

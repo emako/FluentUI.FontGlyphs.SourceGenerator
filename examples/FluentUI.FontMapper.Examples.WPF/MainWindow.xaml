@@ -9,11 +9,11 @@
     <StackPanel Margin="32">
         <TextBlock FontSize="20" FontWeight="SemiBold" Text="图标字体常量" />
         <TextBlock Margin="0,16,0,0"
-                   FontFamily="pack://application:,,,/Assets/SampleIcons.ttf#Sample Icons"
+                   FontFamily="pack://application:,,,/Assets/fontawesome.ttf#FontAwesome"
                    FontSize="72"
-                   Text="{x:Static icons:Icons.Add20}" />
+                   Text="{x:Static icons:Icons.Heart}" />
         <TextBlock Margin="0,8,0,0"
                    Foreground="#666"
-                   Text="Icons.Add20 来自字形名 ic_fluent_add_20_regular。" />
+                   Text="Icons.Heart 来自字形名 heart。" />
     </StackPanel>
 </Window>

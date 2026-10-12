@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace FluentUI.FontMapper;
+namespace FluentUI.FontGlyphs.SourceGenerator;
 
 internal readonly struct TypePart(string modifiers, string name)
 {

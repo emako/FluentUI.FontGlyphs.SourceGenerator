@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\FluentUI.FontMapper\FluentUI.FontMapper.csproj" />
+    <ProjectReference Include="..\..\src\FluentUI.FontGlyphs.SourceGenerator\FluentUI.FontGlyphs.SourceGenerator.csproj" />
   </ItemGroup>
 
   <ItemGroup>

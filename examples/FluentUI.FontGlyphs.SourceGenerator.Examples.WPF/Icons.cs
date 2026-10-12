@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Reflection;
 
-namespace FluentUI.FontMapper.Examples.Wpf;
+namespace FluentUI.FontGlyphs.SourceGenerator.Examples.Wpf;
 
-[FontMapper("Assets/fontawesome.ttf")]
+[FontGlyphs("Assets/fontawesome.ttf")]
 public static partial class Icons;
 
 #if DEBUG

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 
-namespace FluentUI.FontMapper.Tests;
+namespace FluentUI.FontGlyphs.SourceGenerator.Tests;
 
 public class GeneratorTests
 {
@@ -16,9 +16,9 @@ public class GeneratorTests
     public void Assembly_attribute_generates_string_constants()
     {
         string source = """
-            using FluentUI.FontMapper;
+            using FluentUI.FontGlyphs.SourceGenerator;
 
-            [assembly: FontMapper("fontawesome.ttf", "SymbolRegular", "Demo.Icons")]
+            [assembly: FontGlyphs("fontawesome.ttf", "SymbolRegular", "Demo.Icons")]
             """;
 
         GenerationResult compilation = Run(source, TestFonts.FontAwesome, "fontawesome.ttf");
@@ -38,11 +38,11 @@ public class GeneratorTests
     public void Partial_class_attribute_generates_into_the_declared_type()
     {
         string source = """
-            using FluentUI.FontMapper;
+            using FluentUI.FontGlyphs.SourceGenerator;
 
             namespace App.Controls;
 
-            [FontMapper("Assets/fontawesome.ttf")]
+            [FontGlyphs("Assets/fontawesome.ttf")]
             public static partial class Icons
             {
                 public const string Manual = "manual";
@@ -63,12 +63,12 @@ public class GeneratorTests
     public void Both_usages_can_exist_in_one_compilation()
     {
         string source = """
-            using FluentUI.FontMapper;
+            using FluentUI.FontGlyphs.SourceGenerator;
 
-            [assembly: FontMapper("fontawesome.ttf", "SymbolFilled", "Generated")]
+            [assembly: FontGlyphs("fontawesome.ttf", "SymbolFilled", "Generated")]
             namespace App;
 
-            [FontMapper("fontawesome.ttf")]
+            [FontGlyphs("fontawesome.ttf")]
             internal partial class LocalIcons
             {
             }
@@ -85,9 +85,9 @@ public class GeneratorTests
     public void Missing_font_reports_FM0001()
     {
         string source = """
-            using FluentUI.FontMapper;
+            using FluentUI.FontGlyphs.SourceGenerator;
 
-            [assembly: FontMapper("missing.ttf", "Icons", "Demo")]
+            [assembly: FontGlyphs("missing.ttf", "Icons", "Demo")]
             """;
 
         GenerationResult result = Run(source, TestFonts.FontAwesome, "other.ttf");
@@ -100,9 +100,9 @@ public class GeneratorTests
     public void Non_partial_class_reports_FM0003()
     {
         string source = """
-            using FluentUI.FontMapper;
+            using FluentUI.FontGlyphs.SourceGenerator;
 
-            [FontMapper("fontawesome.ttf")]
+            [FontGlyphs("fontawesome.ttf")]
             public static class Icons
             {
             }
@@ -117,9 +117,9 @@ public class GeneratorTests
     public void Wrong_constructor_reports_FM0007()
     {
         string source = """
-            using FluentUI.FontMapper;
+            using FluentUI.FontGlyphs.SourceGenerator;
 
-            [FontMapper("fontawesome.ttf", "Name", "Namespace")]
+            [FontGlyphs("fontawesome.ttf", "Name", "Namespace")]
             public static partial class Icons
             {
             }
@@ -134,9 +134,9 @@ public class GeneratorTests
     public void Unnamed_font_reports_FM0002()
     {
         string source = """
-            using FluentUI.FontMapper;
+            using FluentUI.FontGlyphs.SourceGenerator;
 
-            [assembly: FontMapper("Segoe Fluent Icons.ttf", "Icons", "Demo")]
+            [assembly: FontGlyphs("Segoe Fluent Icons.ttf", "Icons", "Demo")]
             """;
 
         GenerationResult result = Run(source, TestFonts.SegoeFluentIcons, "Segoe Fluent Icons.ttf");
@@ -156,9 +156,9 @@ public class GeneratorTests
         try
         {
             string source = """
-                using FluentUI.FontMapper;
+                using FluentUI.FontGlyphs.SourceGenerator;
 
-                [assembly: FontMapper("Assets/fontawesome.ttf", "Icons", "Demo")]
+                [assembly: FontGlyphs("Assets/fontawesome.ttf", "Icons", "Demo")]
                 """;
             GenerationResult result = Run(source, fontPath: null, additionalRelativePath: null, projectDirectory: directory);
             Assert.Equal("\uF004", GetConstant(result.Assembly, "Demo.Icons", "Heart"));
@@ -196,7 +196,7 @@ public class GeneratorTests
             CSharpParseOptions parseOptions = new CSharpParseOptions(LanguageVersion.CSharp13);
             SyntaxTree syntax = CSharpSyntaxTree.ParseText(source, parseOptions);
             CSharpCompilation compilation = CSharpCompilation.Create(
-                "FontMapper.Fixture",
+                "FontGlyphs.Fixture",
                 [syntax],
                 MetadataReferences(),
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
@@ -205,7 +205,7 @@ public class GeneratorTests
                 ? []
                 : ImmutableArray.Create<AdditionalText>(new FileAdditionalText(copiedFont));
             CSharpGeneratorDriver driver = CSharpGeneratorDriver.Create(
-                [new FontMapperGenerator().AsSourceGenerator()],
+                [new FontGlyphsGenerator().AsSourceGenerator()],
                 additional,
                 parseOptions,
                 new TestAnalyzerConfigOptionsProvider(projectDirectory ?? string.Empty));

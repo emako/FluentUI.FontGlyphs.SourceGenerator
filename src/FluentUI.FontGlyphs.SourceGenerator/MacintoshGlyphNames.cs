@@ -1,4 +1,4 @@
-namespace FluentUI.FontMapper;
+namespace FluentUI.FontGlyphs.SourceGenerator;
 
 /// <summary>Macintosh standard glyph names used by the TrueType post table format 2.</summary>
 internal static class MacintoshGlyphNames

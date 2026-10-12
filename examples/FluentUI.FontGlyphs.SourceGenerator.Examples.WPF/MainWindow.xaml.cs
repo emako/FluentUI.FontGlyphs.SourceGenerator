@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace FluentUI.FontMapper.Examples.Wpf;
+namespace FluentUI.FontGlyphs.SourceGenerator.Examples.Wpf;
 
 public partial class MainWindow : Window
 {

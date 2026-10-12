@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>disable</ImplicitUsings>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <RootNamespace>FluentUI.FontMapper</RootNamespace>
+    <RootNamespace>FluentUI.FontGlyphs.SourceGenerator</RootNamespace>
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -17,8 +17,8 @@
     <NoWarn>$(NoWarn);RS1035</NoWarn>
     <Version>1.0.0</Version>
     <Authors>emako</Authors>
-    <PackageId>FluentUI.FontMapper</PackageId>
-    <Title>FluentUI Font Mapper</Title>
+    <PackageId>FluentUI.FontGlyphs.SourceGenerator</PackageId>
+    <Title>FluentUI Font Glyphs Source Generator</Title>
     <Description>Roslyn source generator that maps TrueType font glyphs to string constants.</Description>
     <PackageTags>fluentui font icons source-generator roslyn</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -50,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="FluentUI.FontMapper.Tests" />
+    <InternalsVisibleTo Include="FluentUI.FontGlyphs.SourceGenerator.Tests" />
     <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
     <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
   </ItemGroup>

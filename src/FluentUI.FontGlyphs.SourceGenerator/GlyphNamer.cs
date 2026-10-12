@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace FluentUI.FontMapper;
+namespace FluentUI.FontGlyphs.SourceGenerator;
 
 internal readonly struct NamedGlyph(string identifier, uint codepoint, string glyphName)
 {

@@ -1,4 +1,4 @@
-namespace FluentUI.FontMapper.Tests;
+namespace FluentUI.FontGlyphs.SourceGenerator.Tests;
 
 internal static class TestFonts
 {

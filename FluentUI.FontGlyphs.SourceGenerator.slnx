@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FluentUI.FontGlyphs.SourceGenerator/FluentUI.FontGlyphs.SourceGenerator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FluentUI.FontGlyphs.SourceGenerator.Tests/FluentUI.FontGlyphs.SourceGenerator.Tests.csproj" />
+  </Folder>
+  <Folder Name="/examples/">
+    <Project Path="examples/FluentUI.FontGlyphs.SourceGenerator.Examples.WPF/FluentUI.FontGlyphs.SourceGenerator.Examples.Wpf.csproj" />
+  </Folder>
+</Solution>

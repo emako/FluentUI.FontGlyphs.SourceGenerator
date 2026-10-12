@@ -1,8 +1,8 @@
-<Window x:Class="FluentUI.FontMapper.Examples.Wpf.MainWindow"
+<Window x:Class="FluentUI.FontGlyphs.SourceGenerator.Examples.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:icons="clr-namespace:FluentUI.FontMapper.Examples.Wpf"
-        Title="FluentUI.FontMapper WPF"
+        xmlns:icons="clr-namespace:FluentUI.FontGlyphs.SourceGenerator.Examples.Wpf"
+        Title="FluentUI.FontGlyphs.SourceGenerator WPF"
         Height="280"
         Width="480"
         WindowStartupLocation="CenterScreen">

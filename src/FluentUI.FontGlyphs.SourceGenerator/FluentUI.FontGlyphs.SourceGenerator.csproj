@@ -15,15 +15,15 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoWarn>$(NoWarn);RS1035</NoWarn>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>emako</Authors>
     <PackageId>FluentUI.FontGlyphs.SourceGenerator</PackageId>
     <Title>FluentUI Font Glyphs Source Generator</Title>
     <Description>Roslyn source generator that maps TrueType font glyphs to string constants.</Description>
     <PackageTags>fluentui font icons source-generator roslyn</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/emako/FluentUI.FontMapper</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/emako/FluentUI.FontMapper.git</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/emako/FluentUI.FontGlyphs.SourceGenerator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/emako/FluentUI.FontGlyphs.SourceGenerator.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>logo.png</PackageIcon>

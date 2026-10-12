@@ -26,9 +26,7 @@ using FluentUI.FontGlyphs.SourceGenerator;
 namespace App.Controls;
 
 [FontGlyphs("Assets/Fluent.ttf")]
-public static partial class Icons
-{
-}
+public static partial class Icons;
 ```
 
 Or at assembly scope, with an explicit type name and namespace:

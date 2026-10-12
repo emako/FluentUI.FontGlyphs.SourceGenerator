@@ -1,4 +1,12 @@
+﻿param(
+    [string]$ApiKey
+)
+
 Set-Location $PSScriptRoot
+
+if (-not $ApiKey) {
+    $ApiKey = Read-Host "Enter NuGet API Key"
+}
 
 Write-Host @"
 ███╗   ██╗██╗   ██╗ ██████╗ ███████╗████████╗
@@ -9,5 +17,7 @@ Write-Host @"
 ╚═╝  ╚═══╝ ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝   
 "@
 
-dotnet pack ..\src\FluentUI.FontMapper\FluentUI.FontMapper.csproj -c Release -o .
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+dotnet nuget push *.nupkg --api-key $ApiKey --source https://api.nuget.org/v3/index.json
+
+Write-Host "`nPress any key to exit..."
+[void][System.Console]::ReadKey($true)

@@ -62,20 +62,33 @@ internal static class FontFile
             throw new InvalidDataException("The font is missing a cmap or post table.");
         }
 
-        string[] names = ReadPostNames(data, postOffset, postLength);
+        string[]? names = ReadPostNames(data, postOffset, postLength);
         SortedDictionary<uint, int> mappings = ReadCmap(data, cmapOffset, cmapLength);
         List<GlyphMapping> result = new List<GlyphMapping>(mappings.Count);
         foreach (KeyValuePair<uint, int> pair in mappings)
         {
-            if (pair.Value <= 0 || pair.Value >= names.Length)
+            string name;
+            if (names == null)
             {
-                continue;
-            }
+                if (pair.Key < 0x21)
+                {
+                    continue;
+                }
 
-            string name = names[pair.Value];
-            if (string.IsNullOrEmpty(name) || name[0] == '.')
+                name = UnicodeGlyphName(pair.Key);
+            }
+            else
             {
-                continue;
+                if (pair.Value <= 0 || pair.Value >= names.Length)
+                {
+                    continue;
+                }
+
+                name = names[pair.Value];
+                if (string.IsNullOrEmpty(name) || name[0] == '.')
+                {
+                    continue;
+                }
             }
 
             result.Add(new GlyphMapping(pair.Key, name));
@@ -85,11 +98,26 @@ internal static class FontFile
         return result;
     }
 
-    private static string[] ReadPostNames(byte[] data, uint offset, uint length)
+    private static string UnicodeGlyphName(uint codepoint)
+    {
+        return codepoint <= 0xFFFF
+            ? "uni" + codepoint.ToString("X4")
+            : "u" + codepoint.ToString("X");
+    }
+
+    /// <summary>
+    /// Format 2 and 2.5 store PostScript names. Format 3 omits them; callers then name glyphs from Unicode scalars.
+    /// </summary>
+    private static string[]? ReadPostNames(byte[] data, uint offset, uint length)
     {
         Reader reader = new Reader(data, (int)offset);
         int end = checked((int)offset + (int)length);
         uint format = reader.U32();
+        if (format == 0x00030000)
+        {
+            return null;
+        }
+
         if (format != 0x00020000 && format != 0x00025000)
         {
             throw new InvalidDataException("Only post table format 2 fonts expose glyph names. This font uses format 0x" + format.ToString("X8") + ".");

@@ -16,10 +16,12 @@ public class FontFileTests
     }
 
     [Fact]
-    public void Segoe_fluent_icons_has_no_glyph_names()
+    public void Segoe_fluent_icons_falls_back_to_unicode_names()
     {
-        InvalidDataException exception = Assert.Throws<InvalidDataException>(() => FontFile.Read(File.ReadAllBytes(TestFonts.SegoeFluentIcons)));
+        List<GlyphMapping> glyphs = FontFile.Read(File.ReadAllBytes(TestFonts.SegoeFluentIcons));
 
-        Assert.Contains("0x00030000", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(glyphs, glyph => glyph.Name == "uniE700");
+        Assert.DoesNotContain(glyphs, glyph => glyph.Codepoint < 0x21);
+        Assert.True(glyphs.Count > 1000);
     }
 }

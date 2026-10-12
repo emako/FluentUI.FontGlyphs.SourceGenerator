@@ -131,7 +131,7 @@ public class GeneratorTests
     }
 
     [Fact]
-    public void Unnamed_font_reports_FM0002()
+    public void Format3_font_emits_unicode_names()
     {
         string source = """
             using FluentUI.FontGlyphs.SourceGenerator;
@@ -141,8 +141,8 @@ public class GeneratorTests
 
         GenerationResult result = Run(source, TestFonts.SegoeFluentIcons, "Segoe Fluent Icons.ttf");
 
-        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "FM0002");
-        Assert.DoesNotContain(result.Assembly.GetTypes(), type => type.Name == "Icons");
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Id == "FM0002");
+        Assert.Equal("\uE700", GetConstant(result.Assembly, "Demo.Icons", "UniE700"));
     }
 
     [Fact]

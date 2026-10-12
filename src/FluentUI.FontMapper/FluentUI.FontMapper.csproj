@@ -10,6 +10,8 @@
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoWarn>$(NoWarn);RS1035</NoWarn>
@@ -31,7 +33,17 @@
     <None Include="..\..\nuget\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\nuget\logo.png" Pack="true" PackagePath="\" />
     <None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(OutputPath)$(AssemblyName).pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
+
+  <!-- IncludeBuildOutput is false, so the SDK never collects PDBs for the symbol package. -->
+  <Target Name="AddAnalyzerSymbols" BeforeTargets="GenerateNuspec" DependsOnTargets="DebugSymbolsProjectOutputGroup">
+    <ItemGroup>
+      <_TargetPathsToSymbols Include="@(DebugSymbolsProjectOutputGroupOutput)">
+        <TargetFramework>$(TargetFramework)</TargetFramework>
+      </_TargetPathsToSymbols>
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" PrivateAssets="all" />
